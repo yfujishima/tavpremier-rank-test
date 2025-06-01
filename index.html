@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>TAVプレミア番付表（自動連携）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 40px;
+      border-bottom: 2px solid #ccc;
+    }
+    .rank-section {
+      display: flex;
+      gap: 20px;
+    }
+    .side {
+      flex: 1;
+    }
+    .side h3 {
+      text-align: center;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      min-height: 50px;
+      border: 1px solid #ddd;
+      background: #f9f9f9;
+    }
+    li {
+      padding: 8px;
+      margin: 4px;
+      background: #fff;
+      border: 1px solid #ccc;
+      min-height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <h1>TAVプレミア番付表（スプレッドシート自動反映）</h1>
+  <div id="container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRz1Vn6XXGg4zlhQ7bgaLqvLUVHTEbrxd5wvIcDyzKNOsKqeF4DP3JaLL6bri2G1pJGlbHvbs5R7is5/pub?output=csv';
+
+    function createRankSection(rankName, eastList, westList) {
+      const section = document.createElement('div');
+      section.innerHTML = `
+        <h2>${rankName}</h2>
+        <div class="rank-section">
+          <div class="side">
+            <h3>東</h3>
+            <ul>${eastList.map(p => '<li>' + (p.link ? `<a href="${p.link}" target="_blank">${p.name}</a>` : p.name) + '</li>').join('')}</ul>
+          </div>
+          <div class="side">
+            <h3>西</h3>
+            <ul>${westList.map(p => '<li>' + (p.link ? `<a href="${p.link}" target="_blank">${p.name}</a>` : p.name) + '</li>').join('')}</ul>
+          </div>
+        </div>
+      `;
+      return section;
+    }
+
+    function render(data) {
+      const grouped = {};
+
+      // 番付を作成（同許容）
+      let orgRank = null;
+      let sameRank = null;
+      data.forEach(row => {
+        let rank       = Object.hasOwn(row, 'TAV番付表') ? row['TAV番付表'].trim() : '';
+        const eastName = Object.hasOwn(row, '東') ? row['東'].trim() : '';
+        const eastLink = Object.hasOwn(row, '東リンク') ? row['東リンク'].trim() : '';
+        const westName = Object.hasOwn(row, '西') ? row['西'].trim() : '';
+        const westLink = Object.hasOwn(row, '西リンク') ? row['西リンク'].trim() : '';
+
+        if (rank === '同') {
+          // まだ同を追加していない場合だけ追加
+          if (sameRank === null) {
+            sameRank = orgRank + ' ' + '同';
+            rank = sameRank;
+          } else {
+            rank = sameRank;
+          }
+        } else {
+          orgRank = rank;
+          sameRank = null;
+        }
+
+        if (!Object.hasOwn(grouped, rank)) {
+          grouped[rank] = { '東': [], '西': [] };
+        }
+        grouped[rank]['東'].push({ name: eastName, link: eastLink });
+        grouped[rank]['西'].push({ name: westName, link: westLink });
+      });
+
+      const container = document.getElementById('container');
+      container.innerHTML = '';
+      for (const rank in grouped) {
+        const sec = createRankSection(rank || '無題', grouped[rank].東, grouped[rank].西);
+        container.appendChild(sec);
+      }
+    }
+
+    function init() {
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: true,
+        complete: function(results) {
+          render(results.data);
+        },
+        error: function(err) {
+          console.error('CSV読み込み失敗:', err);
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
