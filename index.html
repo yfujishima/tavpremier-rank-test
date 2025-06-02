@@ -37,6 +37,9 @@
       border: 1px solid #ccc;
       min-height: 24px;
     }
+    .sortable-ghost {
+      opacity: 0.4;
+    }
   </style>
 </head>
 <body>
@@ -44,6 +47,7 @@
   <div id="container"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRz1Vn6XXGg4zlhQ7bgaLqvLUVHTEbrxd5wvIcDyzKNOsKqeF4DP3JaLL6bri2G1pJGlbHvbs5R7is5/pub?output=csv';
 
@@ -104,6 +108,15 @@
         const sec = createRankSection(rank || '無題', grouped[rank].東, grouped[rank].西);
         container.appendChild(sec);
       }
+
+      // セクションごとのulを取得してSortableにする
+      const lists = sec.querySelectorAll('ul');
+      lists.forEach(list => {
+        new Sortable(list, {
+          animation: 150,
+          ghostClass: 'sortable-ghost'
+        });
+      });
     }
 
     function init() {
