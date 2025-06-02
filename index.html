@@ -113,7 +113,8 @@
         lists.forEach(list => {
           new Sortable(list, {
             animation: 150,
-            ghostClass: 'sortable-ghost'
+            ghostClass: 'sortable-ghost',
+            group: 'all-lists',
           });
         });
       }
