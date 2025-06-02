@@ -107,16 +107,16 @@
       for (const rank in grouped) {
         const sec = createRankSection(rank || '無題', grouped[rank].東, grouped[rank].西);
         container.appendChild(sec);
-      }
 
-      // セクションごとのulを取得してSortableにする
-      const lists = sec.querySelectorAll('ul');
-      lists.forEach(list => {
-        new Sortable(list, {
-          animation: 150,
-          ghostClass: 'sortable-ghost'
+        // セクションごとのulを取得してSortableにする
+        const lists = sec.querySelectorAll('ul');
+        lists.forEach(list => {
+          new Sortable(list, {
+            animation: 150,
+            ghostClass: 'sortable-ghost'
+          });
         });
-      });
+      }
     }
 
     function init() {
